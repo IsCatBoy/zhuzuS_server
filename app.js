@@ -44,3 +44,102 @@ app.use(express.static("public"));
 // 8. 打印输出提示信息
 console.log("server running at http://192.168.101.108:8888");
 
+//监听聊天
+// let ws = require("nodejs-websocket");
+// console.log("开始建立链接");
+// ws.createServer(function (conn) {
+//     conn.on("text", function (str) {
+//         console.log("收到的信息为", str);
+//         conn.send(`${str}（机器人`)
+//     });
+//     conn.on("close", function (code, reason) {
+//         console.log("关闭连接")
+//     });
+//     conn.on("error", function (code, reason) {
+//         console.log("异常关闭")
+//     })
+// }).listen(8001,);
+// console.log("链接建立完毕");
+
+
+var ws = require("nodejs-websocket");
+
+// JavaScript 日期处理类库
+var moment = require('moment');
+
+console.log("开始建立连接...")
+let users = [];
+
+// let conns = {};
+
+//向所有链接的客户端广播
+function boardcast(obj) {
+
+    console.log(JSON.stringify(obj));
+
+    // bridge用来实现一对一的主要参数
+    // if (obj.bridge && obj.bridge.length) {
+    //     console.log(obj.bridge);
+    //     obj.bridge.forEach(item => {
+    //         conns[item].sendText(JSON.stringify(obj));
+    //     })
+    //     return;
+    // }
+    server.connections.forEach((conn) => {
+        conn.sendText(JSON.stringify(obj));
+    })
+}
+
+function getDate() {
+    return moment().format("YYYY-MM-DD HH:mm:ss")
+}
+
+var server = ws.createServer(function (conn) {
+    conn.on("text", function (obj) {
+        obj = JSON.parse(obj);
+
+        // 将所有uid对应的连接conn存到一个对象里面
+        // conns['' + obj.uid + ''] = conn;
+        if (obj.type === 1) {
+            // let isuser = users.some(item => {
+            //     return item.uid === obj.uid
+            // })
+            // if (!isuser) {
+            users.push({
+                nickname: obj.nickname,
+                uid: obj.uid
+            });
+            // }
+            boardcast({
+                type: 1,
+                date: getDate(),
+                msg: obj.nickname + '加入聊天室',
+                users: users,
+                uid: obj.uid,
+                nickname: obj.nickname,
+                // 增加参数
+                bridge: obj.bridge
+            });
+        } else {
+            boardcast({
+                type: 2,
+                date: getDate(),
+                msg: obj.msg,
+                uid: obj.uid,
+                nickname: obj.nickname,
+                // 增加参数
+                bridge: obj.bridge
+            });
+        }
+    })
+    conn.on("close", function (code, reason) {
+        console.log("关闭连接")
+    });
+    conn.on("error", function (code, reason) {
+        console.log("异常关闭")
+    });
+}).listen(8001)
+console.log("WebSocket建立完毕")
+
+
+
