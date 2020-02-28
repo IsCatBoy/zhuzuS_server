@@ -6,6 +6,9 @@ Content-Type: application/json
     "password":"qq123456"
 }
 ###
+GET http://192.168.101.108:8888/getregion HTTP/1.1
+
+###
 POST http://192.168.101.108:8888/auth HTTP/1.1
 Content-Type: application/json
 authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImQwMzNlMjJhZTM0OGFlYjU2NjBmYzIxNDBhZWMzNTg1MGM0ZGE5OTciLCJwYXNzd29yZCI6IjFlOWM0OGZlZGI3NGM0MDhjZmE3NjRjMmU2NTc5MzQ1YWQzOGIwNTkiLCJpYXQiOjE1ODI2MTE3NzMsImV4cCI6MTU4MjYxMTc5M30.s-4lxwjoj15wkHpF87y9zlj9s_54fctpV_YJFc5rE7k
