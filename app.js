@@ -1,6 +1,6 @@
 // 1. 导入express
 const express = require("express");
-const { port } = require("./server.config");
+const { port, host } = require("./server.config");
 // 2. 创建express实例
 const app = express();
 // 3. 处理跨域
@@ -42,7 +42,7 @@ app.use(express.static("public"));
 
 
 // 8. 打印输出提示信息
-console.log("server running at http://192.168.101.108:8888");
+console.log(`server running at http://${host}:${port}`);
 
 //监听聊天
 // let ws = require("nodejs-websocket");

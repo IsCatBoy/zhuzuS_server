@@ -10,7 +10,7 @@ const Jwts = (data) => {
     // console.log(sha1Value1, sha1Value2);
 
     let token = jwt.sign({ username: sha1Value1, password: sha1Value2 }, secretOrPrivateKey, {
-        expiresIn: 20  // 1小时过期
+        expiresIn: 60 * 60 * 1  // 1小时过期
     });
     // console.log(token);
     return token;
