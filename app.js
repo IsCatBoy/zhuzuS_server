@@ -29,12 +29,12 @@ app.use(bodyParser.json());
 
 // 6. 处理路由
 const base_regionRoute = require("./routes/base_region");
-// const otherRoute = require("./routes/other");
-// const shoppingCartRoute = require("./routes/shopping-cart");
+const getimgdata = require("./routes/getimgdata");
+const usercaht = require("./routes/userchat");
 const loginRegisterRoute = require("./routes/user");
 app.use("/", base_regionRoute);
-// app.use("/shopping_cart", shoppingCartRoute);
-// app.use("/", otherRoute);
+app.use("/getimgdata", getimgdata);
+app.use("/cahts", usercaht);
 app.use("/", loginRegisterRoute);
 
 // 7. 处理静态资源
@@ -68,38 +68,33 @@ var ws = require("nodejs-websocket");
 var moment = require('moment');
 
 console.log("开始建立连接...")
-let users = [];
+// function getDate() {
+//     return moment().format("YYYY-MM-DD HH:mm:ss")
+// }
 
+let users = [];
 let conns = {};
 
-//向所有链接的客户端广播
 function boardcast(obj) {
-
-    console.log(JSON.stringify(obj));
-
     // bridge用来实现一对一的主要参数
+    console.log(obj);
     if (obj.bridge && obj.bridge.length) {
-        console.log(obj.bridge);
         obj.bridge.forEach(item => {
             conns[item].sendText(JSON.stringify(obj));
         })
         return;
     }
-    server.connections.forEach((conn) => {
+    server.connections.forEach((conn, index) => {
         conn.sendText(JSON.stringify(obj));
     })
-}
-
-function getDate() {
-    return moment().format("YYYY-MM-DD HH:mm:ss")
 }
 
 var server = ws.createServer(function (conn) {
     conn.on("text", function (obj) {
         obj = JSON.parse(obj);
-
         // 将所有uid对应的连接conn存到一个对象里面
-        conns['' + obj.uid + ''] = conn;
+        conns[obj.uid] = conn;
+        console.log(conns);
         if (obj.type === 1) {
             let isuser = users.some(item => {
                 return item.uid === obj.uid
@@ -110,9 +105,10 @@ var server = ws.createServer(function (conn) {
                     uid: obj.uid
                 });
             }
+            console.log(users);
             boardcast({
                 type: 1,
-                date: getDate(),
+                date: moment().format('YYYY-MM-DD HH:mm:ss'),
                 msg: obj.nickname + '加入聊天室',
                 users: users,
                 uid: obj.uid,
@@ -123,7 +119,7 @@ var server = ws.createServer(function (conn) {
         } else {
             boardcast({
                 type: 2,
-                date: getDate(),
+                date: moment().format('YYYY-MM-DD HH:mm:ss'),
                 msg: obj.msg,
                 uid: obj.uid,
                 nickname: obj.nickname,
@@ -140,6 +136,7 @@ var server = ws.createServer(function (conn) {
     });
 }).listen(8001)
 console.log("WebSocket建立完毕")
+
 
 
 

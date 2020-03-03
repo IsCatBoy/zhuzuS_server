@@ -99,7 +99,7 @@ router.post("/updata", (req, res) => {
                 return new Promise((reslove, reject) => {
                     const form = formidable({ multiples: true });
                     // var form = new formidable.IncomingForm();
-                    //  form.uploadDir = "public/touxiang/";
+                    form.uploadDir = "public/touxiang/";
                     form.parse(req, function (err, fields, files) {
                         console.log(fields);
                         console.log(files);
@@ -271,12 +271,86 @@ router.post("/releaapi", (req, res) => {
             message: "token已过期"
         })
     } else {
-        const form = formidable({ multiples: true });
-        // var form = new formidable.IncomingForm();
-        // form.uploadDir = "public/touxiang/";
+        // const form = formidable({ multiples: true });
+        var form = new formidable.IncomingForm();
+        let ziurl = "/releimg/";
+        let urlimg = "public" + ziurl;
+        form.uploadDir = urlimg;
         form.parse(req, function (err, fields, files) {
             console.log(fields);
             console.log(files);
+
+            function chuantu() {
+                return new Promise((reslove, reject) => {
+                    try {
+                        let imgurls = [];
+                        function backFiles(n) {
+                            let file = files[`NewsfileList${n}`];
+                            if (file != undefined) {
+                                console.log(file);
+                                let timestamp = (new Date()).valueOf();
+                                let nam = "zhuzu";
+                                //头像名
+                                let imgname = null;
+                                let imgurl = null;
+                                imgname = nam + timestamp + file.name;
+                                imgurl = `http://${host}:${port}${ziurl}${imgname}`;
+                                imgurls.push(imgurl);
+                                fs.renameSync(file.path, urlimg + imgname);
+                                n++;
+                                backFiles(n);
+                            }
+                        }
+                        backFiles(0);
+                        console.log(imgurls);
+                        reslove(imgurls);
+                    } catch (error) {
+                        reject(error);
+                    }
+
+                })
+            }
+            chuantu().then(imgurldata => {
+                let { NewsUserid, NewsArticletype, NewsTitle, NewsContent, NewsTheme, NewsPosition, NewsSynBtn, NewsSaveBtn, NewsKeyflag } = fields
+                let imgsurl = imgurldata.join(",");
+                console.log(imgsurl);
+                let sqlinsar = `INSERT INTO res_article (article_type,key_flag,photo,title,content,create_user_id,theme,position,synbtn,savebtn) VALUES(${NewsArticletype},${NewsKeyflag},'${imgsurl}','${NewsTitle}','${NewsContent}',${NewsUserid},'${NewsTheme}','${NewsPosition}',${NewsSynBtn},${NewsSaveBtn})`;
+                const dbin = getConnection();
+                dbin.connect();
+                dbin.query(sqlinsar, (err, sqlres) => {
+                    if (err) {
+                        console.log(err.message);
+                        res.send({
+                            code: 202,
+                            err: "err",
+                            message: err.message
+                        })
+                    }
+                    else {
+                        if (sqlres.affectedRows = 1) {
+                            res.send({
+                                code: 200,
+                                err: "ok",
+                                message: "发布成功"
+                            })
+                        }
+                        else {
+                            res.send({
+                                code: 202,
+                                err: "err",
+                                message: "发布失败"
+                            })
+                        }
+                    }
+                });
+                dbin.end();
+            }).catch(err => {
+                res.send({
+                    code: 202,
+                    err: "err",
+                    message: err
+                })
+            })
         })
     }
 })
